@@ -1,0 +1,70 @@
+const slogans = {
+  sale: [
+      "Flash sale on Bitcoin! Don't miss out! 🛍️",
+      "Panic sellers are your best friends! 📢",
+      "Buy low, HODL high! 🤑",
+      "Bitcoin on sale! Get it while it lasts! 🛒",
+      "Cheap sats for the taking! 🏷️",
+      "Stack sats, stay humble! 🙌",
+      "Buy the dip, thank me later! 🤝",
+      "Sats on sale! Grab them now! 🛒",
+      "Bitcoin discount! Don't miss the opportunity! 💸",
+      "The market is bleeding, time to buy! 🩸",
+      "Discounted Bitcoin! Buy the dip! 📉",
+      "HODLers are feasting today! 💰",
+      "Bitcoin sale! Load up your wallet! 💼",
+      "Sats for sale! Get them cheap! 🛒",
+      "Bitcoin: Because who needs stability? 😂",
+      "Bitcoin: The rollercoaster of emotions! 🎢"
+  ],
+  hodl: [
+      "Bitcoin doesn’t flinch, neither should you! 🛡️",
+      "One Bitcoin is still one Bitcoin! 📈",
+      "HODLing is a superpower! 💎",
+      "Stay calm and HODL on! 🧘",
+      "Bitcoin is the future. HODL it! 🚀",
+      "HODLers never lose! 💪",
+      "Bitcoin is digital gold. HODL it! 🏆",
+      "HODL the line! 🛡️",
+      "HODL strong, Bitcoin is here to stay! 🛡️",
+      "Bitcoin is a game changer. HODL it! 🎮",
+      "HODL tight, the future is bright! 🌟",
+      "Bitcoin is unstoppable. HODL it! 🚀",
+      "HODLers are the real winners! 🏆",
+      "Bitcoin is the new gold. HODL it! 🏅",
+      "HODLers never sell! 💪",
+      "Bitcoin is the future of money. HODL it! 💰",
+      "HODLers are the true believers! 🙌",
+      "Bitcoin is the ultimate store of value. HODL it! 💎",
+      "Bitcoin is the future of finance. HODL it! 💸",
+      "HODLers are the real heroes! 🦸",
+      "Bitcoin is the future of wealth. HODL it! 💰",
+      "HODLers are the real visionaries! 👁️",
+      "Bitcoin is the future of freedom. HODL it! 🗽",
+      "HODLers are the real champions! 🏆",
+      "HODL: Because selling is for quitters! 😎",
+      "HODL: The ultimate test of patience! ⏳",
+      "HODL: The art of doing nothing! 🧘",
+      "HODL: Because panic selling is overrated! 😅"
+  ],
+  moon: [
+      "Buckle up, Bitcoin is taking off! 🚀",
+      "Moon mode activated! 🌕",
+      "Bitcoin price isn't rising, fiat is just crashing! 📢",
+      "Bitcoiners don’t sell, they retire! 💰",
+      "Bears in shambles, bulls dancing! 🔥",
+      "Bitcoin to the moon! 🌙",
+      "Bitcoin is unstoppable! 🚀",
+      "Bitcoin is mooning! 🌕",
+      "Bitcoin is a rocket ship! 🚀",
+      "Bitcoin is a moonshot! 🌕",
+      "Bitcoin is a game changer! 🎮",
+      "Bitcoin is a revolution! ✊",
+      "Bitcoin is the future! 🚀",
+  ]
+};
+
+function getRandomSlogan(mode) {
+  const messages = slogans[mode] || slogans.hodl;
+  return messages[Math.floor(Math.random() * messages.length)];
+}

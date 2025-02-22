@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Sale</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Status / Loading -->
+        <h1 id="status">Loading...</h1>
+
+        <div class="content">
+            <!-- Bitcoin Price Display -->
+            <div class="price-container">
+                <span id="price-caption">Bitcoin:</span>
+                <span id="price-value">--</span>
+            </div>
+
+            <!-- 24h Price Change Indicator -->
+            <p id="priceChange">--</p>
+
+            <!-- Satoshis per USD -->
+            <p id="satsPerUsd">--</p>
+
+            <!-- Random Bitcoin-related Slogan -->
+            <p id="slogan">Loading slogan...</p>
+        </div>
+
+        <!-- Image Field -->
+        <div class="image-container">
+            <img id="modeImage" src="" alt="Mode Image">
+        </div>
+
+        <!-- Demo Toggle -->
+        <button id="toggleDemo" style="position: absolute; top: -10px; right: -10px;">Demo: OFF</button>
+    </div>
+
+    <script src="slogans.js"></script>
+    <script src="demo_provider.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>
