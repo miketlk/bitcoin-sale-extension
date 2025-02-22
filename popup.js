@@ -1,52 +1,100 @@
 let demoMode = false; // Default: real API
 let port = chrome.runtime.connect({ name: "popup" });
 
+function showLoading() {
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const content = document.querySelector(".content");
+    if (loadingOverlay && content) {
+        loadingOverlay.style.display = "flex";
+        content.classList.add("loading");
+    }
+    const elementsToClear = ["price-caption", "price-value", "priceChange", "satsPerUsd", "slogan"];
+    elementsToClear.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = "";
+        }
+    });
+}
+
+function hideLoading() {
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const content = document.querySelector(".content");
+    if (loadingOverlay && content) {
+        loadingOverlay.style.display = "none";
+        content.classList.remove("loading");
+    }
+}
+
 port.onMessage.addListener((msg) => {
     const { btcData, mode, demoModeState } = msg;
     if (demoModeState !== undefined) {
         demoMode = demoModeState;
         const toggleDemoButton = document.getElementById("toggleDemo");
-        toggleDemoButton.textContent = "Demo";
-        if (demoMode) {
-            toggleDemoButton.classList.add("active");
-        } else {
-            toggleDemoButton.classList.remove("active");
+        if (toggleDemoButton) {
+            toggleDemoButton.textContent = "Demo";
+            if (demoMode) {
+                toggleDemoButton.classList.add("active");
+            } else {
+                toggleDemoButton.classList.remove("active");
+            }
         }
     }
     if (!btcData) {
-        document.getElementById("status").textContent = "Error fetching data!";
-        document.getElementById("price-caption").textContent = "Bitcoin:";
-        document.getElementById("price-value").textContent = "--";
-        document.getElementById("satsPerUsd").textContent = "--";
-        document.getElementById("priceChange").textContent = "--";
-        document.getElementById("slogan").innerHTML = "--";
-        document.getElementById("modeImage").src = "";
+        const status = document.getElementById("status");
+        if (status) {
+            status.textContent = "Error fetching data!";
+        }
+        const elementsToClear = ["price-caption", "price-value", "satsPerUsd", "priceChange", "slogan"];
+        elementsToClear.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = "";
+            }
+        });
+        const modeImage = document.getElementById("modeImage");
+        if (modeImage) {
+            modeImage.src = "images/hodl.png";
+        }
+        hideLoading();
         return;
     }
 
     const price = btcData.current_price;
     const priceChange = btcData.price_change_percentage_24h;
 
-    document.getElementById("price-caption").textContent = "Bitcoin:";
-    document.getElementById("price-value").textContent = `$${price.toLocaleString()}`;
-    document.getElementById("satsPerUsd").textContent = `1 USD = ${calculateSatsPerUsd(price)} sats`;
-    document.getElementById("priceChange").textContent = determineModeComment(priceChange);
-
-    // Get and display random slogan
-    document.getElementById("slogan").innerHTML = getRandomSlogan(mode);
-
-    // Set the image based on the mode
+    const priceCaption = document.getElementById("price-caption");
+    const priceValue = document.getElementById("price-value");
+    const satsPerUsd = document.getElementById("satsPerUsd");
+    const priceChangeElement = document.getElementById("priceChange");
+    const slogan = document.getElementById("slogan");
     const modeImage = document.getElementById("modeImage");
-    if (mode === "sale") {
-        modeImage.src = "images/sale.png";
-    } else if (mode === "moon") {
-        modeImage.src = "images/moon.png";
-    } else {
-        modeImage.src = "images/hodl.png";
+
+    if (priceCaption) priceCaption.textContent = "Bitcoin:";
+    if (priceValue) priceValue.textContent = `$${price.toLocaleString()}`;
+    if (satsPerUsd) satsPerUsd.textContent = `1 USD = ${calculateSatsPerUsd(price)} sats`;
+    if (priceChangeElement) priceChangeElement.textContent = determineModeComment(priceChange);
+    if (slogan) slogan.innerHTML = getRandomSlogan(mode);
+    if (modeImage) {
+        if (mode === "sale") {
+            modeImage.src = "images/sale.png";
+        } else if (mode === "moon") {
+            modeImage.src = "images/moon.png";
+        } else {
+            modeImage.src = "images/hodl.png";
+        }
     }
 
-    // Remove loading status
-    document.getElementById("status").textContent = "";
+    const status = document.getElementById("status");
+    if (status) {
+        status.textContent = "";
+    }
+    hideLoading();
+});
+
+// Ensure the spinner and overlay disappear when data is loaded
+port.onDisconnect.addListener(() => {
+    hideLoading();
 });
 
 function calculateSatsPerUsd(price) {
@@ -72,11 +120,13 @@ function determineModeComment(priceChange) {
 document.getElementById("toggleDemo").addEventListener("click", () => {
     demoMode = !demoMode;
     const toggleDemoButton = document.getElementById("toggleDemo");
-    toggleDemoButton.textContent = "Demo";
-    if (demoMode) {
-        toggleDemoButton.classList.add("active");
-    } else {
-        toggleDemoButton.classList.remove("active");
+    if (toggleDemoButton) {
+        toggleDemoButton.textContent = "Demo";
+        if (demoMode) {
+            toggleDemoButton.classList.add("active");
+        } else {
+            toggleDemoButton.classList.remove("active");
+        }
     }
 
     // Inform background script to switch modes
@@ -84,6 +134,9 @@ document.getElementById("toggleDemo").addEventListener("click", () => {
         port.postMessage({ action: "toggleDemoMode", enabled: demoMode });
     }
 });
+
+// Show loading spinner when popup opens
+showLoading();
 
 // Run the update when popup opens
 if (port) {

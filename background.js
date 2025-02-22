@@ -36,10 +36,12 @@ async function fetchBitcoinData() {
     } else {
         try {
             const response = await fetch(API_URL);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const data = await response.json();
             return data[0];
         } catch (error) {
-            console.error("Error fetching Bitcoin data:", error);
             return null;
         }
     }
@@ -71,7 +73,14 @@ function updateIcon(mode) {
 
 async function updateBadge() {
     const btcData = await fetchBitcoinData();
-    if (!btcData) return;
+    if (!btcData) {
+        chrome.action.setBadgeText({ text: "ERR" });
+        chrome.action.setBadgeBackgroundColor({ color: "#ff8080" });
+        if (port) {
+            port.postMessage({ btcData: null, mode: "error", demoModeState: demoMode });
+        }
+        return;
+    }
 
     const price = btcData.current_price;
     const priceChange = btcData.price_change_percentage_24h;
