@@ -39,7 +39,7 @@ const slogans = {
       "Bitcoin is the future of finance.\nHODL it! 💸",
       "HODLers are the real heroes! 🦸",
       "Bitcoin is the future of wealth.\nHODL it! 💰",
-      "HODLers are the real visionaries! 👁️",
+      "HODLers are the real\nvisionaries! 👁️",
       "Bitcoin is the future of freedom.\nHODL it! 🗽",
       "HODLers are the real champions! 🏆",
       "HODL: Because selling is for quitters! 😎",
