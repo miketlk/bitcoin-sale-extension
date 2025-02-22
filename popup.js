@@ -19,7 +19,7 @@ port.onMessage.addListener((msg) => {
         document.getElementById("price-value").textContent = "--";
         document.getElementById("satsPerUsd").textContent = "--";
         document.getElementById("priceChange").textContent = "--";
-        document.getElementById("slogan").textContent = "--";
+        document.getElementById("slogan").innerHTML = "--";
         document.getElementById("modeImage").src = "";
         return;
     }
@@ -33,7 +33,7 @@ port.onMessage.addListener((msg) => {
     document.getElementById("priceChange").textContent = determineModeComment(priceChange);
 
     // Get and display random slogan
-    document.getElementById("slogan").textContent = getRandomSlogan(mode);
+    document.getElementById("slogan").innerHTML = getRandomSlogan(mode);
 
     // Set the image based on the mode
     const modeImage = document.getElementById("modeImage");
