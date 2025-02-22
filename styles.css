@@ -19,10 +19,10 @@ body {
 }
 
 .container {
-  width: 400px;
+  width: 410px;
   height: 165px;
   display: flex;
-  max-width: 400px;
+  max-width: 410px;
   margin: auto;
   border-radius: 10px;
   position: relative;
