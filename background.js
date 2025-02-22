@@ -118,3 +118,9 @@ chrome.runtime.onConnect.addListener(function(p) {
 // Initial fetch and interval setup
 updateBadge();
 intervalId = setInterval(updateBadge, 60000);
+
+// Ensure the extension starts updating the badge immediately when Chrome starts
+chrome.runtime.onStartup.addListener(() => {
+    updateBadge();
+    intervalId = setInterval(updateBadge, 60000);
+});
