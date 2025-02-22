@@ -1,7 +1,7 @@
 const slogans = {
   sale: [
       "Flash sale on Bitcoin!\nDon't miss out! 🛍️",
-      "Panic sellers are your best friends! 📢",
+      "Panic sellers are your\nbest friends! 📢",
       "Buy low, HODL high! 🤑",
       "Bitcoin on sale!\nGet it while it lasts! 🛒",
       "Cheap sats for the taking! 🏷️",
