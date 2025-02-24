@@ -1,4 +1,6 @@
 const API_URL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin";
+const UPDATE_PERIOD = 30000; // 30 seconds
+const UPDATE_PERIOD_DEMO = 3000; // 3 seconds
 let currentMode = "hodl"; // Default mode
 let demoMode = false; // Default: real API
 let intervalId = null; // Stores interval for demo mode cycling
@@ -34,15 +36,21 @@ async function fetchBitcoinData() {
     if (demoMode) {
         return getNextDemoData(); // Fetch demo data
     } else {
-        try {
-            const response = await fetch(API_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data[0];
+            } catch (error) {
+                if (attempt < 3) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+                } else {
+                    return null;
+                }
             }
-            const data = await response.json();
-            return data[0];
-        } catch (error) {
-            return null;
         }
     }
 }
@@ -71,6 +79,8 @@ function updateIcon(mode) {
     chrome.action.setIcon({ path: iconPath });
 }
 
+let retryTimeoutId = null;
+
 async function updateBadge() {
     const btcData = await fetchBitcoinData();
     if (!btcData) {
@@ -79,7 +89,17 @@ async function updateBadge() {
         if (port) {
             port.postMessage({ btcData: null, mode: "error", demoModeState: demoMode });
         }
+        // Retry after 1 minute if there's an error
+        if (!retryTimeoutId) {
+            retryTimeoutId = setTimeout(updateBadge, UPDATE_PERIOD);
+        }
         return;
+    }
+
+    // Clear retry timeout if data is successfully fetched
+    if (retryTimeoutId) {
+        clearTimeout(retryTimeoutId);
+        retryTimeoutId = null;
     }
 
     const price = btcData.current_price;
@@ -113,11 +133,11 @@ chrome.runtime.onConnect.addListener(function(p) {
             if (demoMode) {
                 clearInterval(intervalId);
                 updateBadge(); // Fetch mock data immediately
-                intervalId = setInterval(updateBadge, 3000); // Update demo mode every 3 seconds
+                intervalId = setInterval(updateBadge, UPDATE_PERIOD_DEMO);
             } else {
                 clearInterval(intervalId);
                 updateBadge(); // Fetch real API data immediately
-                intervalId = setInterval(updateBadge, 60000); // Update real API every 1 min
+                intervalId = setInterval(updateBadge, UPDATE_PERIOD);
             }
         }
     });
@@ -126,10 +146,24 @@ chrome.runtime.onConnect.addListener(function(p) {
 
 // Initial fetch and interval setup
 updateBadge();
-intervalId = setInterval(updateBadge, 60000);
+intervalId = setInterval(updateBadge, UPDATE_PERIOD);
 
 // Ensure the extension starts updating the badge immediately when Chrome starts
 chrome.runtime.onStartup.addListener(() => {
     updateBadge();
-    intervalId = setInterval(updateBadge, 60000);
+    intervalId = setInterval(updateBadge, UPDATE_PERIOD);
+});
+
+// Ensure the extension starts updating the badge immediately when the extension is installed or updated
+chrome.runtime.onInstalled.addListener(() => {
+    updateBadge();
+    intervalId = setInterval(updateBadge, UPDATE_PERIOD);
+});
+
+// Use alarms to keep the service worker active
+chrome.alarms.create("updateBadgeAlarm", { periodInMinutes: UPDATE_PERIOD / 60000 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === "updateBadgeAlarm") {
+        updateBadge();
+    }
 });
