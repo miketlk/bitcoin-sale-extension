@@ -84,8 +84,8 @@ let retryTimeoutId = null;
 async function updateBadge() {
     const btcData = await fetchBitcoinData();
     if (!btcData) {
-        chrome.action.setBadgeText({ text: "ERR" });
-        chrome.action.setBadgeBackgroundColor({ color: "#ff8080" });
+        chrome.action.setBadgeText({ text: "?" });
+        chrome.action.setBadgeBackgroundColor({ color: "#808080" });
         if (port) {
             port.postMessage({ btcData: null, mode: "error", demoModeState: demoMode });
         }
