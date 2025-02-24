@@ -1,4 +1,4 @@
-const UPDATE_PERIOD = 10000; // 10 seconds
+const UPDATE_PERIOD = 60000; // 60 seconds
 
 let demoMode = false; // Default: real API
 let port = chrome.runtime.connect({ name: "popup" });

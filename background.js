@@ -1,5 +1,5 @@
 const API_URL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin";
-const UPDATE_PERIOD = 30000; // 30 seconds
+const UPDATE_PERIOD = 60000; // 60 seconds
 const UPDATE_PERIOD_DEMO = 3000; // 3 seconds
 let currentMode = "hodl"; // Default mode
 let demoMode = false; // Default: real API
