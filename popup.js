@@ -157,3 +157,22 @@ if (manifest.update_url) {
         toggleDemoButton.style.display = "none";
     }
 }
+
+// Randomly select a link text
+const linkTexts = [
+    "let's build hardware",
+    "collaborate on HW stuff",
+    "creating secure firmware?",
+    "need a PCB wizard?",
+    "your hardware partner in crime",
+    "hard tech for hard money",
+    "circuits for cypherpunks",
+    "making hardware less hard"
+];
+const randomText = linkTexts[Math.floor(Math.random() * linkTexts.length)];
+const footerLink = document.getElementById("footerLink");
+footerLink.textContent = randomText;
+footerLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: footerLink.href });
+});
