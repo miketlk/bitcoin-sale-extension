@@ -1,6 +1,8 @@
 const API_URL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin";
 const UPDATE_PERIOD = 60000; // 60 seconds
 const UPDATE_PERIOD_DEMO = 3000; // 3 seconds
+const RETRY_INTERVAL = 2000; // 2 seconds
+const RETRY_ATTEMPTS = 3;
 let currentMode = "hodl"; // Default mode
 let demoMode = false; // Default: real API
 let intervalId = null; // Stores interval for demo mode cycling
@@ -36,7 +38,7 @@ async function fetchBitcoinData() {
     if (demoMode) {
         return getNextDemoData(); // Fetch demo data
     } else {
-        for (let attempt = 1; attempt <= 3; attempt++) {
+        for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
             try {
                 const response = await fetch(API_URL);
                 if (!response.ok) {
@@ -46,7 +48,7 @@ async function fetchBitcoinData() {
                 return data[0];
             } catch (error) {
                 if (attempt < 3) {
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+                    await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
                 } else {
                     return null;
                 }
@@ -113,10 +115,13 @@ async function updateBadge() {
     // Update the toolbar icon
     updateIcon(mode);
 
-    // Send data to popup
+    // Send data to popup if connected
     if (port) {
         port.postMessage({ btcData, mode, demoModeState: demoMode });
     }
+
+    // Notify popup to update UI
+    chrome.runtime.sendMessage({ action: "updateUI", btcData, mode });
 }
 
 let port = null;

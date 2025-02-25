@@ -1,8 +1,5 @@
-const UPDATE_PERIOD = 60000; // 60 seconds
-
 let demoMode = false; // Default: real API
 let port = chrome.runtime.connect({ name: "popup" });
-let retryTimeoutId = null;
 
 function showLoading() {
     const loadingOverlay = document.getElementById("loadingOverlay");
@@ -60,18 +57,14 @@ port.onMessage.addListener((msg) => {
             modeImage.src = "images/hodl.png";
         }
         hideLoading();
-        // Retry later if there's an error
-        if (!retryTimeoutId) {
-            retryTimeoutId = setTimeout(() => {
-                if (port) {
-                    port.postMessage({ action: "updateUI" });
-                }
-                retryTimeoutId = null;
-            }, UPDATE_PERIOD);
-        }
         return;
     }
 
+    updateUI(btcData, mode);
+    hideLoading();
+});
+
+function updateUI(btcData, mode) {
     const price = btcData.current_price;
     const priceChange = btcData.price_change_percentage_24h;
 
@@ -101,13 +94,7 @@ port.onMessage.addListener((msg) => {
     if (status) {
         status.textContent = "";
     }
-    hideLoading();
-    // Clear retry timeout if data is successfully fetched
-    if (retryTimeoutId) {
-        clearTimeout(retryTimeoutId);
-        retryTimeoutId = null;
-    }
-});
+}
 
 // Ensure the spinner and overlay disappear when data is loaded
 port.onDisconnect.addListener(() => {
@@ -155,7 +142,9 @@ document.getElementById("toggleDemo").addEventListener("click", () => {
 // Show loading spinner when popup opens
 showLoading();
 
-// Run the update when popup opens
-if (port) {
-    port.postMessage({ action: "updateUI" });
-}
+// Listen for updates from the background script
+chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.action === "updateUI") {
+        updateUI(msg.btcData, msg.mode);
+    }
+});
