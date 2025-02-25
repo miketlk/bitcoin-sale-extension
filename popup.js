@@ -99,6 +99,7 @@ function updateUI(btcData, mode) {
 // Ensure the spinner and overlay disappear when data is loaded
 port.onDisconnect.addListener(() => {
     hideLoading();
+    port = null; // Clear the port reference
 });
 
 function calculateSatsPerUsd(price) {
@@ -135,7 +136,11 @@ document.getElementById("toggleDemo").addEventListener("click", () => {
 
     // Inform background script to switch modes
     if (port) {
-        port.postMessage({ action: "toggleDemoMode", enabled: demoMode });
+        try {
+            port.postMessage({ action: "toggleDemoMode", enabled: demoMode });
+        } catch (error) {
+            console.log("Failed to send message to background script:", error);
+        }
     }
 });
 

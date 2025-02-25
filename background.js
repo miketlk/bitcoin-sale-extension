@@ -97,7 +97,7 @@ async function updateBadge() {
             try {
                 port.postMessage({ btcData: null, mode: "error", demoModeState: demoMode });
             } catch (error) {
-                console.error("Failed to send message to popup:", error);
+                console.log("Failed to send message to popup:", error);
             }
         }
         // Retry after 1 minute if there's an error
@@ -129,7 +129,7 @@ async function updateBadge() {
         try {
             port.postMessage({ btcData, mode, demoModeState: demoMode });
         } catch (error) {
-            console.error("Failed to send message to popup:", error);
+            console.log("Failed to send message to popup:", error);
         }
     } else {
         console.warn("No active port to send message to popup.");
