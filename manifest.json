@@ -3,7 +3,7 @@
   "name": "Bitcoin Sale",
   "version": "1.0",
   "description": "A fun extension that tracks Bitcoin price changes and tells you if Bitcoin is on sale, stable, or mooning!",
-  "permissions": ["storage", "alarms"],
+  "permissions": ["alarms"],
   "host_permissions": ["https://api.coingecko.com/"],
   "background": {
     "service_worker": "background.js"
