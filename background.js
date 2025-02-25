@@ -3,6 +3,8 @@ const UPDATE_PERIOD = 60000; // 60 seconds
 const UPDATE_PERIOD_DEMO = 3000; // 3 seconds
 const RETRY_INTERVAL = 2000; // 2 seconds
 const RETRY_ATTEMPTS = 3;
+const FRESHNESS_TIME = 10 * 60 * 1000; // 10 minutes in milliseconds
+const RATE_LIMIT_PERIOD = 30000; // 30 seconds in milliseconds
 let currentMode = "hodl"; // Default mode
 let demoMode = false; // Default: real API
 let intervalId = null; // Stores interval for demo mode cycling
@@ -34,7 +36,21 @@ function getNextDemoData() {
   return data;
 }
 
+let latestData = null;
+let latestDataTimestamp = null;
+let lastApiCallTimestamp = 0;
+
 async function fetchBitcoinData() {
+    const now = Date.now();
+    if (now - lastApiCallTimestamp < RATE_LIMIT_PERIOD) {
+        console.log("Rate limit exceeded. Using cached data if available.");
+        if (latestData && (now - latestDataTimestamp) <= FRESHNESS_TIME) {
+            return latestData;
+        } else {
+            return null;
+        }
+    }
+
     if (demoMode) {
         return getNextDemoData(); // Fetch demo data
     } else {
@@ -50,7 +66,10 @@ async function fetchBitcoinData() {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                return data[0];
+                latestData = data[0];
+                latestDataTimestamp = now;
+                lastApiCallTimestamp = now;
+                return latestData;
             } catch (error) {
                 if (attempt < RETRY_ATTEMPTS) {
                     await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
@@ -89,22 +108,27 @@ function updateIcon(mode) {
 let retryTimeoutId = null;
 
 async function updateBadge() {
-    const btcData = await fetchBitcoinData();
+    let btcData = await fetchBitcoinData();
     if (!btcData) {
-        chrome.action.setBadgeText({ text: "?" });
-        chrome.action.setBadgeBackgroundColor({ color: "#808080" });
-        if (port) {
-            try {
-                port.postMessage({ btcData: null, mode: "error", demoModeState: demoMode });
-            } catch (error) {
-                console.log("Failed to send message to popup:", error);
+        // Check if latest data is still fresh (within 10 minutes)
+        if (latestData && (Date.now() - latestDataTimestamp) <= FRESHNESS_TIME) {
+            btcData = latestData;
+        } else {
+            chrome.action.setBadgeText({ text: "?" });
+            chrome.action.setBadgeBackgroundColor({ color: "#808080" });
+            if (port) {
+                try {
+                    port.postMessage({ btcData: null, mode: "error", demoModeState: demoMode });
+                } catch (error) {
+                    console.log("Failed to send message to popup:", error);
+                }
             }
+            // Retry after 1 minute if there's an error
+            if (!retryTimeoutId) {
+                retryTimeoutId = setTimeout(updateBadge, UPDATE_PERIOD);
+            }
+            return;
         }
-        // Retry after 1 minute if there's an error
-        if (!retryTimeoutId) {
-            retryTimeoutId = setTimeout(updateBadge, UPDATE_PERIOD);
-        }
-        return;
     }
 
     // Clear retry timeout if data is successfully fetched
