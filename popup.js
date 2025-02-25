@@ -148,3 +148,12 @@ chrome.runtime.onMessage.addListener((msg) => {
         updateUI(msg.btcData, msg.mode);
     }
 });
+
+// Hide demo button in production
+const manifest = chrome.runtime.getManifest();
+if (manifest.update_url) {
+    const toggleDemoButton = document.getElementById("toggleDemo");
+    if (toggleDemoButton) {
+        toggleDemoButton.style.display = "none";
+    }
+}

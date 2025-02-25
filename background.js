@@ -89,7 +89,11 @@ async function updateBadge() {
         chrome.action.setBadgeText({ text: "?" });
         chrome.action.setBadgeBackgroundColor({ color: "#808080" });
         if (port) {
-            port.postMessage({ btcData: null, mode: "error", demoModeState: demoMode });
+            try {
+                port.postMessage({ btcData: null, mode: "error", demoModeState: demoMode });
+            } catch (error) {
+                console.error("Failed to send message to popup:", error);
+            }
         }
         // Retry after 1 minute if there's an error
         if (!retryTimeoutId) {
@@ -117,11 +121,23 @@ async function updateBadge() {
 
     // Send data to popup if connected
     if (port) {
-        port.postMessage({ btcData, mode, demoModeState: demoMode });
+        try {
+            port.postMessage({ btcData, mode, demoModeState: demoMode });
+        } catch (error) {
+            console.error("Failed to send message to popup:", error);
+        }
+    } else {
+        console.warn("No active port to send message to popup.");
     }
 
     // Notify popup to update UI
-    chrome.runtime.sendMessage({ action: "updateUI", btcData, mode });
+    chrome.runtime.sendMessage({ action: "updateUI", btcData, mode }, (response) => {
+        if (chrome.runtime.lastError) {
+            console.log("Error sending message to popup:", chrome.runtime.lastError.message);
+        } else {
+            console.log("Message sent to popup successfully:", response);
+        }
+    });
 }
 
 let port = null;
