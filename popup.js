@@ -174,7 +174,7 @@ const linkTexts = [
     "circuits for cypherpunks",
     "making hardware less hard"
 ];
-const randomText = linkTexts[Math.floor(Math.random() * linkTexts.length)];
+const randomText = linkTexts[Math.floor(Math.random() * linkTexts.length)] + " ➜";
 const footerLink = document.getElementById("footerLink");
 footerLink.textContent = randomText;
 footerLink.addEventListener("click", (e) => {
