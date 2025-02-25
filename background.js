@@ -42,12 +42,17 @@ async function fetchBitcoinData() {
             try {
                 const response = await fetch(API_URL);
                 if (!response.ok) {
+                    if (response.status === 429) {
+                        console.log("Rate limit exceeded. Scheduling next update after UPDATE_PERIOD.");
+                        await new Promise(resolve => setTimeout(resolve, UPDATE_PERIOD));
+                        return null;
+                    }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
                 return data[0];
             } catch (error) {
-                if (attempt < 3) {
+                if (attempt < RETRY_ATTEMPTS) {
                     await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
                 } else {
                     return null;
