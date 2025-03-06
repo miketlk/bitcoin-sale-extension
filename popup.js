@@ -147,13 +147,6 @@ document.getElementById("toggleDemo").addEventListener("click", () => {
 // Show loading spinner when popup opens
 showLoading();
 
-// Listen for updates from the background script
-chrome.runtime.onMessage.addListener((msg) => {
-    if (msg.action === "updateUI") {
-        updateUI(msg.btcData, msg.mode);
-    }
-});
-
 // Hide demo button in production
 const manifest = chrome.runtime.getManifest();
 if (manifest.update_url) {

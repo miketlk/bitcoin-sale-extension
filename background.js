@@ -4,7 +4,9 @@ const UPDATE_PERIOD_DEMO = 3000; // 3 seconds
 const RETRY_INTERVAL = 2000; // 2 seconds
 const RETRY_ATTEMPTS = 3;
 const FRESHNESS_TIME = 10 * 60 * 1000; // 10 minutes in milliseconds
-const RATE_LIMIT_PERIOD = 30000; // 30 seconds in milliseconds
+const RATE_LIMIT_PERIOD = 55000; // 55 seconds in milliseconds
+const IDLE_DETECTION_INTERVAL = 15; // 15 seconds
+const FETCH_AWAIT_INTERVAL = 1000; // 1 second
 let currentMode = "hodl"; // Default mode
 let demoMode = false; // Default: real API
 let intervalId = null; // Stores interval for demo mode cycling
@@ -39,9 +41,16 @@ function getNextDemoData() {
 let latestData = null;
 let latestDataTimestamp = null;
 let lastApiCallTimestamp = 0;
+let fetchInProgress = false;
 
 async function fetchBitcoinData() {
+    while (fetchInProgress) {
+        console.log("Fetch in progress. Waiting for it to complete.");
+        await new Promise(resolve => setTimeout(resolve, FETCH_AWAIT_INTERVAL));
+    }
+
     const now = Date.now();
+    console.log("Fetching data at", now);
     if (now - lastApiCallTimestamp < RATE_LIMIT_PERIOD) {
         console.log("Rate limit exceeded. Using cached data if available.");
         if (latestData && (now - latestDataTimestamp) <= FRESHNESS_TIME) {
@@ -56,7 +65,21 @@ async function fetchBitcoinData() {
     } else {
         for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
             try {
+                fetchInProgress = true;
                 const response = await fetch(API_URL);
+                console.log("Fetching data using API. Attempt:", attempt, "Response status: ", response.status);
+                if (response.ok) {
+                    const data = await response.json();
+                    latestData = data[0];
+                    latestDataTimestamp = now;
+                    lastApiCallTimestamp = now;
+                    console.log("Data fetched successfully. Data:", data);
+                    console.log("Latest data timestamp:", latestDataTimestamp);
+                    console.log("Last API call timestamp:", lastApiCallTimestamp);
+                    console.log("Latest data:", latestData);
+                }
+                fetchInProgress = false;
+
                 if (!response.ok) {
                     if (response.status === 429) {
                         console.log("Rate limit exceeded. Scheduling next update after UPDATE_PERIOD.");
@@ -65,12 +88,9 @@ async function fetchBitcoinData() {
                     }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const data = await response.json();
-                latestData = data[0];
-                latestDataTimestamp = now;
-                lastApiCallTimestamp = now;
                 return latestData;
             } catch (error) {
+                fetchInProgress = false;
                 if (attempt < RETRY_ATTEMPTS) {
                     await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
                 } else {
@@ -158,15 +178,6 @@ async function updateBadge() {
     } else {
         console.warn("No active port to send message to popup.");
     }
-
-    // Notify popup to update UI
-    chrome.runtime.sendMessage({ action: "updateUI", btcData, mode }, (response) => {
-        if (chrome.runtime.lastError) {
-            console.log("Error sending message to popup:", chrome.runtime.lastError.message);
-        } else {
-            console.log("Message sent to popup successfully:", response);
-        }
-    });
 }
 
 let port = null;
@@ -217,3 +228,18 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         updateBadge();
     }
 });
+
+// Implement Idle API to avoid suspension of background script
+function setupIdleDetection() {
+    chrome.idle.setDetectionInterval(IDLE_DETECTION_INTERVAL); // Set the detection interval in seconds
+    chrome.idle.onStateChanged.addListener((newState) => {
+        if (newState === "active") {
+            console.log("User is active. Updating badge.");
+            updateBadge();
+        } else if (newState === "idle") {
+            console.log("User is idle. No need to update badge frequently.");
+        }
+    });
+}
+
+setupIdleDetection();
